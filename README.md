@@ -88,7 +88,7 @@ Add at minimum:
 
 ```dotenv
 OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-5-mini
+OPENAI_MODEL=gpt-5.6-luna
 ```
 
 Open the local URL printed by the development server. Demo Mode is selected by default.

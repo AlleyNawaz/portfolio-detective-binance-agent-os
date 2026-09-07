@@ -14,7 +14,7 @@ const createEvent = (type: AgentEvent['type'], details: Omit<AgentEvent, 'id' | 
 export async function runPortfolioAgent(request: string, mode: InvestigationMode, emit: AgentEmitter): Promise<void> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('MISSING_OPENAI_API_KEY');
-  const model = process.env.OPENAI_MODEL || 'gpt-5-mini';
+  const model = process.env.OPENAI_MODEL || 'gpt-5.6-luna';
   const context: InvestigationContext = { mode, holdings: null, markets: new Map(), calculation: null };
   const tools: Array<Record<string, unknown>> = openAITools();
   const mcpToken = process.env.BINANCE_AGENT_OS_MCP_ACCESS_TOKEN;
