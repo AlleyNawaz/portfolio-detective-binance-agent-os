@@ -49,10 +49,6 @@ export function calculateInvestigation(
   const positive = assets.filter((asset) => asset.dollarChange > EPSILON).sort((a, b) => b.dollarChange - a.dollarChange);
   const negative = assets.filter((asset) => asset.dollarChange < -EPSILON).sort((a, b) => a.dollarChange - b.dollarChange);
   const overallMainContributor = assets.find((asset) => Math.abs(asset.dollarChange) > EPSILON) ?? null;
-  const direction = totalChange > EPSILON ? 'increased' : totalChange < -EPSILON ? 'declined' : 'was effectively unchanged';
-  const mainSentence = overallMainContributor
-    ? `${overallMainContributor.symbol} had the largest absolute impact at ${formatSignedCurrency(overallMainContributor.dollarChange)}.`
-    : 'No asset produced a material portfolio impact.';
   const caveat = hasOffsettingMoves
     ? 'Assets moved in opposite directions. Contribution is shown as share of gross absolute movement; net percentages can exceed 100% or be negative when gains and losses offset.'
     : Math.abs(totalChange) <= EPSILON
@@ -73,7 +69,6 @@ export function calculateInvestigation(
     largestPositiveContributor: positive[0] ?? null,
     largestNegativeContributor: negative[0] ?? null,
     overallMainContributor,
-    summary: `The portfolio ${direction} by ${formatSignedCurrency(totalChange)} over the comparison period. ${mainSentence} This identifies contribution from holdings and price movement; it does not establish an external market cause.`,
     caveat,
   };
 }

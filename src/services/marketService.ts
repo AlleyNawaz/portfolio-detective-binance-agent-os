@@ -9,6 +9,18 @@ export async function getMarketEvidence(holdings: PortfolioHolding[], mode: Inve
   return Promise.all(holdings.map(getLiveEvidence));
 }
 
+export async function getMarketData(symbol: string, mode: InvestigationMode, comparisonPeriod: '24h'): Promise<MarketEvidence> {
+  const normalized = symbol.trim().toUpperCase();
+  if (!normalized) throw new Error('INVALID_SYMBOL');
+  if (comparisonPeriod !== '24h') throw new Error('UNSUPPORTED_COMPARISON_PERIOD');
+  if (mode === 'demo') {
+    const evidence = DEMO_MARKET_EVIDENCE.find((market) => market.symbol === normalized);
+    if (!evidence) throw new Error(`MARKET_DATA_UNAVAILABLE:${normalized}`);
+    return evidence;
+  }
+  return getLiveEvidence({ symbol: normalized, quantity: 0 });
+}
+
 async function getLiveEvidence(holding: PortfolioHolding): Promise<MarketEvidence> {
   if (STABLE_ASSETS.has(holding.symbol)) {
     return { symbol: holding.symbol, pair: holding.symbol, currentPrice: 1, previousPrice: 1, source: 'binance-spot-api', comparisonLabel: 'USD stable-asset assumption' };

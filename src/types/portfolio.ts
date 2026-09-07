@@ -38,12 +38,21 @@ export interface InvestigationResult {
   largestPositiveContributor: AssetEvidence | null;
   largestNegativeContributor: AssetEvidence | null;
   overallMainContributor: AssetEvidence | null;
-  summary: string;
   caveat: string | null;
 }
 
-export interface InvestigationProgress {
+export type ToolProvenance = 'binance-agent-os' | 'binance-api-local' | 'local';
+
+export interface AgentEvent {
   id: string;
-  label: string;
-  status: 'pending' | 'active' | 'complete' | 'error';
+  type: 'agent_thinking' | 'tool_call_started' | 'tool_call_completed' | 'tool_call_failed' | 'agent_message' | 'investigation_completed' | 'error';
+  timestamp: string;
+  turn?: number;
+  callId?: string;
+  tool?: string;
+  provenance?: ToolProvenance;
+  input?: unknown;
+  result?: unknown;
+  message?: string;
+  investigation?: InvestigationResult;
 }
