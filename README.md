@@ -1,6 +1,6 @@
-# Portfolio Detective 🔍
+# Portfolio Detective
 
-Portfolio Detective is an AI-ready crypto portfolio investigation agent built for Binance Agent OS Mini Hackathon — Track A. It answers a practical question: *what actually moved my portfolio?*
+Portfolio Detective is an AI-ready crypto portfolio investigation agent built for Binance Agent OS Mini Hackathon Track A. It answers a practical question: *what actually moved my portfolio?*
 
 Instead of asking a language model to do financial arithmetic, the project collects portfolio and price evidence, runs a deterministic TypeScript calculation engine, and gives the Agent OS skill a structured case file to explain.
 
@@ -31,11 +31,11 @@ The dashboard calls the same investigation service used by the command-line agen
 
 Binance's official documentation describes Agent OS as a broader toolkit that includes Binance APIs, Skills Hub, and the Binance MCP server. It does **not** document a package named “Binance Agent OS SDK” for embedding in React. This project uses the verified Track A surface directly:
 
-1. **Binance Skills Hub format** — [`skills/portfolio-detective/SKILL.md`](skills/portfolio-detective/SKILL.md) is an installable agent skill with the official YAML/frontmatter structure and a constrained workflow.
-2. **Agent tool orchestration** — `src/agent/tools.ts` exposes `investigate_portfolio`; `portfolioAgent.ts` orchestrates it; `cli.ts` is the executable bridge used by the skill.
-3. **Official Binance Spot APIs** — Live Mode uses `GET /api/v3/account`, `GET /api/v3/ticker/price`, and `GET /api/v3/klines` at `https://api.binance.com`.
-4. **Structured handoff** — the tool returns JSON calculations; the Agent OS client explains those values under evidence rules. The language model does not calculate impact.
-5. **Optional official MCP connection** — compatible AI clients can separately connect `https://agent.binance.com/mcp/agentic` for OAuth-based Agentic-account balances and market tools. The web app does not falsely claim this OAuth connection; Binance has not documented a browser-app client flow or stable MCP tool names for it.
+1. **Binance Skills Hub format:** [`skills/portfolio-detective/SKILL.md`](skills/portfolio-detective/SKILL.md) is an installable agent skill with the official YAML/frontmatter structure and a constrained workflow.
+2. **Agent tool orchestration:** `src/agent/tools.ts` exposes `investigate_portfolio`; `portfolioAgent.ts` orchestrates it; `cli.ts` is the executable bridge used by the skill.
+3. **Official Binance Spot APIs:** Live Mode uses `GET /api/v3/account`, `GET /api/v3/ticker/price`, and `GET /api/v3/klines` at `https://api.binance.com`.
+4. **Structured handoff:** The tool returns JSON calculations. The Agent OS client explains those values under evidence rules. The language model does not calculate impact.
+5. **Optional official MCP connection:** Compatible AI clients can separately connect `https://agent.binance.com/mcp/agentic` for OAuth-based Agentic-account balances and market tools. The web app does not falsely claim this OAuth connection. Binance has not documented a browser-app client flow or stable MCP tool names for it.
 
 Official sources reviewed:
 
@@ -92,32 +92,45 @@ Credentials stay server-side. `.env*` files are ignored except `.env.example`.
 
 ### Optional MCP Agentic Account
 
-For supported AI clients, add `https://agent.binance.com/mcp/agentic`, authenticate in the browser, and grant the minimum Account and Market Data scopes. Configure it through the client's MCP settings—not by opening the endpoint or pasting it into chat. This is separate from the dashboard's API-key Live Mode.
+For supported AI clients, add `https://agent.binance.com/mcp/agentic`, authenticate in the browser, and grant the minimum Account and Market Data scopes. Configure it through the client's MCP settings. Do not open the endpoint directly or paste it into chat. This is separate from the dashboard's API-key Live Mode.
 
 ## Contribution Mathematics
 
 ```text
 previous value = quantity × previous price
 current value  = quantity × current price
-dollar impact  = current value − previous value
+dollar impact  = current value - previous value
 ```
 
 For assets moving in one direction, contribution is impact divided by net portfolio change. If gains and losses offset, the UI switches to **gross absolute movement**: `abs(asset impact) / sum(abs(all impacts))`. This sums to 100% and avoids presenting negative or greater-than-100% net shares as intuitive proportions. Percentages are unavailable when their denominator is zero or effectively zero.
 
 ## Architecture
 
-```text
-Dashboard ──────────────┐
-                       ├→ API route → investigationService
-Agent OS skill → CLI ──┘                 │
-                              ┌───────────┴───────────┐
-                       portfolioService       marketService
-                              └───────────┬───────────┘
-                                          ↓
-                                   calculations.ts
-                                          ↓
-                                structured case result
+```mermaid
+flowchart TD
+    UI[React Dashboard] --> API[Investigation API]
+    SKILL[Binance Agent OS Skill] --> CLI[Agent CLI]
+    CLI --> AGENT[Portfolio Agent]
+    API --> SERVICE[Investigation Service]
+    AGENT --> SERVICE
+
+    SERVICE --> PORTFOLIO[Portfolio Service]
+    SERVICE --> MARKET[Market Service]
+
+    PORTFOLIO --> DEMO[Demo Holdings]
+    PORTFOLIO --> ACCOUNT[Binance Spot Account API]
+    MARKET --> SAMPLE[Demo Market Evidence]
+    MARKET --> BINANCE[Binance Ticker and Kline APIs]
+
+    PORTFOLIO --> ENGINE[Deterministic Calculation Engine]
+    MARKET --> ENGINE
+    ENGINE --> RESULT[Structured Investigation Result]
+
+    RESULT --> REPORT[Dashboard Report]
+    RESULT --> SUMMARY[Agent Generated Explanation]
 ```
+
+Both entry points use the same services and calculation engine. The dashboard never depends on the language model for arithmetic. The Agent OS skill receives the completed structured result and is responsible only for explaining the evidence.
 
 ## Error Handling
 
@@ -132,15 +145,6 @@ Friendly errors cover missing credentials, empty portfolios, unsupported USDT pa
 - The dashboard summary is deterministic. A genuinely AI-written narrative is produced when the skill runs in an Agent OS-compatible client.
 - Binance MCP uses client-level interactive OAuth. No embeddable React SDK or guaranteed MCP tool names are documented, so none are invented here.
 - Availability depends on region, account eligibility, and Binance support.
-
-## Two-Minute Demo Script
-
-1. **0:00–0:20** — “My portfolio moved—but which holding did it?” Show the Demo Mode label.
-2. **0:20–0:50** — Click **Start Investigation** and point out the evidence trail.
-3. **0:50–1:25** — Show total value, change, main contributor, and the contribution ledger. Explain gross contribution for offsetting moves.
-4. **1:25–1:50** — Run `npm run agent:investigate -- --demo`; show the Agent OS `SKILL.md` and its no-invention rules.
-5. **1:50–2:15** — Toggle Live Mode and explain read-only Spot credentials plus the optional official MCP connection.
-6. **2:15–2:30** — “The arithmetic is deterministic, the narrative is evidence-bound, and the case is reproducible.”
 
 ## Disclaimer
 
